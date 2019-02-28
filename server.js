@@ -1,6 +1,7 @@
 let express = require('express');
 let bodyParser = require('body-parser');
 let request = require('request');
+let moment = require('moment');
 
 let app = express();
 
@@ -15,21 +16,22 @@ app.get('/', function (req, res) {
 
 app.post('/v1/nba', function (req, res) {
   console.log(req.body);
-  let today = "20190225";
+  let today = new Date();
+  today = moment(today).subtract(16, 'hours').format('YYYYMMDD')
   if (req.body.text === 'scoreboard') {
     console.log('Scoreboard');
-    request(nbaAPIURL + "/" + today + "/scoreboard.json", function(error, response, body) {
+    let scoreBoardEndpoint = nbaAPIURL + today + "/scoreboard.json";
+    request(scoreBoardEndpoint, function(error, response, body) {
+      console.log('request endpoint: ', scoreBoardEndpoint)
       console.log('error: ', error);
       console.log('statusCode: ', response && response.statusCode);
-      // console.log('body:', body);
       let scoreBoard = ""
       if (response.statusCode === 200) {
         let gamesObject = JSON.parse(body);
-        // console.log(gamesObject);
         for (let game of gamesObject.games ){
-          scoreBoard += `${game.hTeam.score} ${game.hTeam.triCode} (${game.hTeam.win}-${game.hTeam.win}) VS ${game.vTeam.score} ${game.vTeam.triCode} (${game.vTeam.win}-${game.vTeam.win})\n`;
-          console.log(scoreBoard);
+          scoreBoard += `${game.vTeam.score} ${game.vTeam.triCode} (${game.vTeam.win}-${game.vTeam.win}) VS ${game.hTeam.score} ${game.hTeam.triCode} (${game.hTeam.win}-${game.hTeam.win})\n`;
         }
+        console.log('scoreboard: \n', scoreBoard);
         res.statusCode = 200;
         return res.send(scoreBoard);
       }
