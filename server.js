@@ -4,6 +4,7 @@ let request = require('request');
 let moment = require('moment');
 
 let app = express();
+const port = 3000;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -38,15 +39,22 @@ app.post('/v1/nba', function (req, res) {
           console.log('error: ', error);
           console.log('statusCode: ', response && response.statusCode);
 
-          let scoreBoard = ""
+          let scoreBoardResponse = {
+            "text": `Gameday: ${todayObject.links.currentDate}`,
+            "attachments": [
+              {
+                "text": ""
+              }
+            ]
+          }
           if (response.statusCode === 200) {
             let gamesObject = JSON.parse(body);
             for (let game of gamesObject.games) {
-              scoreBoard += `${game.vTeam.score} ${game.vTeam.triCode} (${game.vTeam.win}-${game.vTeam.win}) VS ${game.hTeam.score} ${game.hTeam.triCode} (${game.hTeam.win}-${game.hTeam.win})\n`;
+              scoreBoardResponse.attachments[0].text += `${game.vTeam.score} ${game.vTeam.triCode} (${game.vTeam.win}-${game.vTeam.win}) VS ${game.hTeam.score} ${game.hTeam.triCode} (${game.hTeam.win}-${game.hTeam.win})\n`;
             }
-            console.log('scoreboard: \n', scoreBoard);
+            console.log('scoreboard: \n', scoreBoardResponse);
             res.statusCode = 200;
-            return res.send(scoreBoard);
+            return res.json(scoreBoardResponse);
           }
         })
       }
@@ -59,5 +67,5 @@ app.post('/v1/nba', function (req, res) {
   }
 });
 
-app.listen(3000);
+app.listen(port, () => console.log(`Server listening on port ${port}`));
 
