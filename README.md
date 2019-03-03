@@ -1,7 +1,7 @@
-#NBA Slack Slash Command App
+# NBA Slack Slash Command App
 
-##Scoreboard
+## Scoreboard
 
-##Team Stats Leaders
+## Team Stats Leaders
 
-##Standings
+## Standings
