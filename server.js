@@ -43,6 +43,45 @@ function buildStandingsObject(teams, standings) {
   return standingsObject;
 };
 
+function topFive(rank) {
+  let topFive = []
+  for (let i=1; i<=5; i++){
+    topFive.push(rank[i.toString()]);
+  }
+  return topFive;
+}
+
+function buildTeamRangkings(teams, rankings){
+  let rankingObject = {
+    "text": `Team Stat Leaders:`,
+    "attachments": [
+      {
+        "text": ""
+      }
+    ]
+  }
+  let ppg = buildPPG(teams, rankings);
+  ppg = topFive(ppg);
+  rankingObject.attachments[0].text += "Points Per Game:\n"
+  for (let [i, p] of ppg.entries()) {
+    rankingObject.attachments[0].text += `${i+1}. ${p.tricode} ${p.avg}\n`
+  }
+  return rankingObject;
+};
+
+//TODO: Create isolated module for these.
+function buildPPG(teams, rankings) {
+  let ppg = {};
+  for (ranking of rankings) {
+    let teamRank = ranking.ppg.rank
+    ppg[teamRank] = {
+        "tricode": teams[ranking.teamId],
+        "avg": ranking.ppg.avg
+    }
+  }
+  return ppg;
+};
+
 
 app.post('/v1/nba', function (req, res) {
 
@@ -102,6 +141,31 @@ app.post('/v1/nba', function (req, res) {
           })
         }
       });
+    } else if(req.body.text === 'teamrankings') {
+      let teamsEndpoint = nbaAPIURL + "/prod/v2/2018/teams.json"
+      request(teamsEndpoint, function (error, response, body) {
+        if (response.statusCode === 200) {
+          let teams = JSON.parse(body);
+          teams = buildTeamsObject(teams.league.standard);
+          let year = new Date().getFullYear() - 1;
+          let teamRankingsEndpoint = nbaAPIURL + "/prod/v1/" + year + "/team_stats_rankings.json";
+          console.log(teamRankingsEndpoint);
+          request(teamRankingsEndpoint, function (error, response, body) {
+            if (response.statusCode === 200) {
+              let teamRankingsObject = JSON.parse(body);
+              teamRankingsObject = teamRankingsObject.league.standard.regularSeason.teams
+              teamRankingsObject = buildTeamRangkings(teams, teamRankingsObject)
+              console.log(teamRankingsObject);
+              res.statusCode = 200;
+              return res.json(teamRankingsObject);
+            }
+          });
+        };
+
+      });
+
+      // res.statusCode = 200;
+      // return res.send('Team Rankings.');
     } else {
       return res.send({
         "text" : "Command not found."

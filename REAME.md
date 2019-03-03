@@ -2,12 +2,6 @@
 
 ##Scoreboard
 
-##Team Stats
-
-##League Stats Leader
-
-##MVP Candidates
-
-##DOTY Candidates
+##Team Stats Leaders
 
 ##Standings
